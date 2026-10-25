@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HalfHour — Daily Schedule Planner</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom scrollbar for timeline */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col overflow-hidden select-none">
+
+    <!-- Top Navigation / Header -->
+    <header class="flex-none bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between z-10">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                ½
+            </div>
+            <h1 class="font-bold text-lg tracking-tight">HalfHour</h1>
+        </div>
+
+        <!-- Primary Navigation Tabs -->
+        <nav class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-medium">
+            <button onclick="switchTab('day')" id="nav-day" class="px-3 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-xs text-slate-900 dark:text-white">Day</button>
+            <button onclick="switchTab('actions')" id="nav-actions" class="px-3 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900">Actions</button>
+            <button onclick="switchTab('templates')" id="nav-templates" class="px-3 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900">Templates</button>
+        </nav>
+
+        <!-- Settings Button -->
+        <button onclick="openModal('settings-modal')" class="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" aria-label="Settings">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        </button>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 relative overflow-hidden flex flex-col">
+
+        <!-- VIEW: DAY -->
+        <section id="view-day" class="absolute inset-0 flex flex-col bg-slate-50 dark:bg-slate-950">
+            <!-- Date & Timeline Controls Bar -->
+            <div class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-2 shadow-xs">
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-start">
+                    <div class="flex items-center space-x-1">
+                        <button onclick="changeDate(-1)" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300" aria-label="Previous day">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <input type="date" id="date-picker" onchange="onDateInputChanged(this.value)" class="bg-transparent font-semibold text-sm sm:text-base px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none cursor-pointer">
+                        <button onclick="changeDate(1)" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300" aria-label="Next day">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+                    <button onclick="goToToday()" class="text-xs font-medium px-2.5 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 transition-colors">Today</button>
+                </div>
+
+                <!-- Summary Pills & Template Quick Apply -->
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end text-xs">
+                    <div class="flex items-center space-x-3 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl">
+                        <span class="text-slate-600 dark:text-slate-400">Planned: <strong id="stat-planned" class="text-slate-900 dark:text-white">0</strong></span>
+                        <span class="text-slate-600 dark:text-slate-400">Done: <strong id="stat-done" class="text-emerald-600 dark:text-emerald-400">0</strong></span>
+                        <span class="text-slate-600 dark:text-slate-400">Skipped: <strong id="stat-skipped" class="text-amber-600 dark:text-amber-400">0</strong></span>
+                    </div>
+                    <select id="apply-template-select" onchange="promptApplyTemplate(this.value)" class="bg-slate-100 dark:bg-slate-800 text-xs font-medium px-2.5 py-1.5 rounded-xl border-0 focus:ring-2 focus:ring-emerald-500 cursor-pointer">
+                        <option value="">Apply Template...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Horizontal 24-Hour Timeline Container -->
+            <div id="timeline-container" class="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar px-4 py-6 flex items-center space-x-3 snap-x">
+                <!-- 24 hourly groups will be injected here dynamically -->
+            </div>
+
+            <!-- Bottom Start Hour Info Bar -->
+            <div class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-4 py-2 flex items-center justify-between text-xs text-slate-500">
+                <span>Start Hour: <strong id="current-start-hour-label" class="text-slate-700 dark:text-slate-300">6:00 AM</strong></span>
+                <button onclick="openStartHourModal()" class="text-emerald-600 dark:text-emerald-400 font-medium hover:underline">Change Start Hour</button>
+            </div>
+        </section>
+
+        <!-- VIEW: ACTIONS -->
+        <section id="view-actions" class="absolute inset-0 hidden flex flex-col bg-slate-50 dark:bg-slate-950 p-4 overflow-y-auto">
+            <div class="max-w-xl mx-auto w-full space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold">Reusable Actions</h2>
+                        <p class="text-xs text-slate-500">Create activities with default labels and colors to quickly assign to slots.</p>
+                    </div>
+                    <button onclick="openActionModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium shadow-sm transition-colors">
+                        + New Action
+                    </button>
+                </div>
+                <div id="actions-list" class="space-y-2">
+                    <!-- Actions rendered dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: TEMPLATES -->
+        <section id="view-templates" class="absolute inset-0 hidden flex flex-col bg-slate-50 dark:bg-slate-950 p-4 overflow-y-auto">
+            <div class="max-w-xl mx-auto w-full space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold">Day Templates</h2>
+                        <p class="text-xs text-slate-500">Preset schedules for different types of days.</p>
+                    </div>
+                    <button onclick="openTemplateModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium shadow-sm transition-colors">
+                        + New Template
+                    </button>
+                </div>
+                <div id="templates-list" class="space-y-3">
+                    <!-- Templates rendered dynamically -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SLOT EDITOR MODAL -->
+    <div id="slot-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex items-center justify-between">
+                <h3 id="slot-modal-title" class="font-bold text-lg">Edit Slot</h3>
+                <button onclick="closeModal('slot-modal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Quick Action (Optional)</label>
+                    <select id="slot-action-select" onchange="onSlotActionSelected(this.value)" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500">
+                        <option value="">-- None / Custom --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Activity Label</label>
+                    <input type="text" id="slot-label-input" placeholder="e.g., Study Math" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Color</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="color" id="slot-color-input" value="#22c55e" class="w-10 h-10 rounded-xl border-0 bg-transparent cursor-pointer">
+                            <button type="button" onclick="resetSlotColor()" class="text-xs text-slate-500 hover:underline">Reset default</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Status</label>
+                        <select id="slot-status-select" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500">
+                            <option value="none">None</option>
+                            <option value="done">Done ✓</option>
+                            <option value="skipped">Skipped ⤹</option>
+                            <option value="moved">Moved ⇄</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+                <button onclick="clearCurrentSlot()" class="px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl text-sm font-medium transition-colors">Clear Slot</button>
+                <div class="flex space-x-2">
+                    <button onclick="closeModal('slot-modal')" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors">Cancel</button>
+                    <button onclick="saveCurrentSlot()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium shadow-sm transition-colors">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTION EDIT/CREATE MODAL -->
+    <div id="action-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800">
+            <h3 id="action-modal-title" class="font-bold text-lg">Create Action</h3>
+            <input type="hidden" id="edit-action-id">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Action Name</label>
+                    <input type="text" id="action-name-input" placeholder="e.g., Mathematics" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Default Slot Label</label>
+                    <input type="text" id="action-label-input" placeholder="e.g., Math" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Default Color</label>
+                    <input type="color" id="action-color-input" value="#3b82f6" class="w-12 h-10 rounded-xl border-0 bg-transparent cursor-pointer">
+                </div>
+            </div>
+            <div class="flex items-center justify-end space-x-2 pt-2">
+                <button onclick="closeModal('action-modal')" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors">Cancel</button>
+                <button onclick="saveAction()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium shadow-sm transition-colors">Save Action</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- START HOUR CONFIGURATION MODAL -->
+    <div id="start-hour-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800">
+            <h3 class="font-bold text-lg">Configure Day Start Hour</h3>
+            <p class="text-xs text-slate-500">Choose when your 24-hour timeline begins (covers 48 half-hour slots).</p>
+            
+            <div>
+                <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Timeline Start Time</label>
+                <select id="start-hour-select" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500">
+                    <!-- Populated dynamically -->
+                </select>
+            </div>
+
+            <div class="flex items-center justify-end space-x-2 pt-2">
+                <button onclick="closeModal('start-hour-modal')" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors">Cancel</button>
+                <button onclick="promptStartHourChangeConfirm()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium shadow-sm transition-colors">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- START HOUR SHIFT CONFIRMATION MODAL -->
+    <div id="start-hour-confirm-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800">
+            <h3 class="font-bold text-lg">How to adjust existing schedule?</h3>
+            <p class="text-xs text-slate-500">You are changing the start hour. Choose how to handle your current schedule items:</p>
+            
+            <div class="space-y-3">
+                <button onclick="applyStartHourChange('shift')" class="w-full text-left p-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-transparent hover:border-emerald-500 transition-all">
+                    <div class="font-semibold text-sm">Option A: Shift the whole schedule</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Move all activities by the same time difference, preserving their relative order.</div>
+                </button>
+                <button onclick="applyStartHourChange('preserve')" class="w-full text-left p-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-transparent hover:border-emerald-500 transition-all">
+                    <div class="font-semibold text-sm">Option B: Preserve actual clock times</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Keep every activity at its original real-world clock time and reposition it in the new timeline.</div>
+                </button>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeModal('start-hour-confirm-modal')" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm font-medium">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEMPLATE EDIT/CREATE MODAL -->
+    <div id="template-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800">
+            <h3 id="template-modal-title" class="font-bold text-lg">Create Template</h3>
+            <input type="hidden" id="edit-template-id">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Template Name</label>
+                    <input type="text" id="template-name-input" placeholder="e.g., School Day" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500">
+                </div>
+            </div>
+            <div class="flex items-center justify-end space-x-2 pt-2">
+                <button onclick="closeModal('template-modal')" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors">Cancel</button>
+                <button onclick="saveTemplate()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium shadow-sm transition-colors">Save Template</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-lg">Settings & Data</h3>
+                <button onclick="closeModal('settings-modal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Appearance -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Appearance</h4>
+                <div class="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                    <span class="text-sm font-medium">Dark Mode</span>
+                    <button onclick="toggleDarkMode()" id="dark-mode-toggle-btn" class="px-3 py-1.5 bg-white dark:bg-slate-700 rounded-lg text-xs font-medium shadow-xs">Toggle</button>
+                </div>
+            </div>
+
+            <!-- Backup & Restore -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Backup & Restore</h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="exportBackup()" class="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-medium text-center transition-colors">
+                        Export Backup (JSON)
+                    </button>
+                    <label class="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-medium text-center transition-colors cursor-pointer block">
+                        Import Backup
+                        <input type="file" accept=".json" onchange="importBackup(this)" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Storage & Privacy -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Storage & Privacy</h4>
+                <div class="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs space-y-1 text-slate-600 dark:text-slate-400">
+                    <p>🔒 All your schedule data, actions, and templates are stored 100% locally on your device using IndexedDB.</p>
+                    <p>No account, server, or internet connection required.</p>
+                </div>
+            </div>
+
+            <!-- Reset -->
+            <div class="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <button onclick="promptResetData()" class="w-full py-2.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl text-sm font-medium transition-colors">
+                    Reset All Application Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM IN-APP MODAL / DIALOG -->
+    <div id="custom-alert-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800">
+            <h3 id="custom-alert-title" class="font-bold text-lg">Notice</h3>
+            <p id="custom-alert-message" class="text-sm text-slate-600 dark:text-slate-400"></p>
+            <div id="custom-alert-buttons" class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeModal('custom-alert-modal')" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP LOGIC & INDEXEDDB -->
+    <script>
+        // --- INDEXEDDB STORAGE WRAPPER ---
+        const DB_NAME = 'HalfHourDB';
+        const DB_VERSION = 1;
+        let db = null;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    if (!database.objectStoreNames.contains('schedules')) {
+                        database.createObjectStore('schedules', { keyPath: 'dateKey' });
+                    }
+                    if (!database.objectStoreNames.contains('actions')) {
+                        database.createObjectStore('actions', { keyPath: 'id' });
+                    }
+                    if (!database.objectStoreNames.contains('templates')) {
+                        database.createObjectStore('templates', { keyPath: 'id' });
+                    }
+                    if (!database.objectStoreNames.contains('settings')) {
+                        database.createObjectStore('settings', { keyPath: 'key' });
+                    }
+                };
+            });
+        }
+
+        async function dbPut(storeName, data) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const request = store.put(data);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function dbGet(storeName, key) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readonly');
+                const store = transaction.objectStore(storeName);
+                const request = store.get(key);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function dbGetAll(storeName) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readonly');
+                const store = transaction.objectStore(storeName);
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function dbDelete(storeName, key) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const request = store.delete(key);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // --- APP STATE ---
+        let currentDateKey = getLocalDateKey(new Date());
+        let currentStartHour = 6;
+        let actions = [];
+        let templates = [];
+        let currentSchedule = {
+            dateKey: currentDateKey,
+            startHour: 6,
+            templateId: null,
+            slots: new Array(48).fill(null).map(() => ({ actionId: '', label: '', color: '', status: 'none' }))
+        };
+        let activeSlotIndex = null;
+        let pendingStartHour = null;
+
+        function getLocalDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await initDB();
+                await loadSettings();
+                await loadActions();
+                await loadTemplates();
+                await loadScheduleForDate(currentDateKey);
+                
+                // Set initial date picker value
+                document.getElementById('date-picker').value = currentDateKey;
+                populateStartHourSelect();
+                
+                renderUI();
+            } catch (err) {
+                console.error('Initialization error:', err);
+                showAlert('Storage Error', 'Failed to initialize local database storage.');
+            }
+        });
+
+        async function loadSettings() {
+            const setting = await dbGet('settings', 'startHour');
+            if (setting !== undefined && setting.value !== undefined) {
+                currentStartHour = setting.value;
+            }
+            const darkModeSetting = await dbGet('settings', 'darkMode');
+            if (darkModeSetting && darkModeSetting.value) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        async function loadActions() {
+            actions = await dbGetAll('actions');
+            if (actions.length === 0) {
+                // Default starter actions
+                actions = [
+                    { id: 'act-1', name: 'Study', label: 'Study', color: '#3b82f6' },
+                    { id: 'act-2', name: 'School', label: 'School', color: '#22c55e' },
+                    { id: 'act-3', name: 'Break', label: 'Break', color: '#f59e0b' },
+                    { id: 'act-4', name: 'Exercise', label: 'Exercise', color: '#ef4444' },
+                    { id: 'act-5', name: 'Reading', label: 'Read', color: '#14b8a6' }
+                ];
+                for (let act of actions) {
+                    await dbPut('actions', act);
+                }
+            }
+        }
+
+        async function loadTemplates() {
+            templates = await dbGetAll('templates');
+            if (templates.length === 0) {
+                templates = [
+                    { id: 'tpl-1', name: 'School Day', startHour: 6, slots: new Array(48).fill(null).map(() => ({ actionId: '', label: '', color: '', status: 'none' })) },
+                    { id: 'tpl-2', name: 'Weekend', startHour: 8, slots: new Array(48).fill(null).map(() => ({ actionId: '', label: '', color: '', status: 'none' })) }
+                ];
+                for (let tpl of templates) {
+                    await dbPut('templates', tpl);
+                }
+            }
+        }
+
+        async function loadScheduleForDate(dateKey) {
+            let sched = await dbGet('schedules', dateKey);
+            if (!sched) {
+                sched = {
+                    dateKey: dateKey,
+                    startHour: currentStartHour,
+                    templateId: null,
+                    slots: new Array(48).fill(null).map(() => ({ actionId: '', label: '', color: '', status: 'none' }))
+                };
+                await dbPut('schedules', sched);
+            }
+            currentSchedule = sched;
+            currentStartHour = sched.startHour !== undefined ? sched.startHour : currentStartHour;
+        }
+
+        // --- START HOUR DROPDOWN HELPER ---
+        function populateStartHourSelect() {
+            const select = document.getElementById('start-hour-select');
+            if (!select) return;
+            select.innerHTML = '';
+            for (let h = 0; h < 24; h++) {
+                const opt = document.createElement('option');
+                opt.value = h;
+                opt.textContent = formatHourLabel(h);
+                if (h === currentStartHour) opt.selected = true;
+                select.appendChild(opt);
+            }
+        }
+
+        // --- NAVIGATION ---
+        function switchTab(tabName) {
+            ['day', 'actions', 'templates'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).className = 'px-3 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900';
+            });
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabName}`).className = 'px-3 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-xs text-slate-900 dark:text-white';
+            
+            if (tabName === 'actions') renderActionsList();
+            if (tabName === 'templates') renderTemplatesList();
+            if (tabName === 'day') renderTimeline();
+        }
+
+        // --- DATE NAVIGATION ---
+        async function changeDate(days) {
+            const parts = currentDateKey.split('-').map(Number);
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            d.setDate(d.getDate() + days);
+            currentDateKey = getLocalDateKey(d);
+            document.getElementById('date-picker').value = currentDateKey;
+            await loadScheduleForDate(currentDateKey);
+            renderUI();
+        }
+
+        async function onDateInputChanged(val) {
+            if (!val) return;
+            currentDateKey = val;
+            await loadScheduleForDate(currentDateKey);
+            renderUI();
+        }
+
+        async function goToToday() {
+            currentDateKey = getLocalDateKey(new Date());
+            document.getElementById('date-picker').value = currentDateKey;
+            await loadScheduleForDate(currentDateKey);
+            renderUI();
+        }
+
+        // --- TIMELINE RENDERING (24 Hourly Groups, 48 Slots) ---
+        function renderUI() {
+            document.getElementById('current-start-hour-label').textContent = formatHourLabel(currentStartHour);
+            populateTemplateDropdown();
+            renderTimeline();
+            updateStats();
+        }
+
+        function formatHourLabel(hour24) {
+            const h = hour24 % 24;
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const h12 = h % 12 === 0 ? 12 : h % 12;
+            return `${h12}:00 ${ampm}`;
+        }
+
+        function formatSlotTime(startH, slotIndex) {
+            const totalMinutes = (startH * 60) + (slotIndex * 30);
+            const slotStartMin = totalMinutes % 1440;
+            const slotEndMin = (slotStartMin + 30) % 1440;
+            return `${formatMinutesToTime(slotStartMin)}–${formatMinutesToTime(slotEndMin)}`;
+        }
+
+        function formatMinutesToTime(mins) {
+            const h24 = Math.floor(mins / 60);
+            const m = mins % 60;
+            const ampm = h24 >= 12 ? 'PM' : 'AM';
+            const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+            const mStr = String(m).padStart(2, '0');
+            return `${h12}:${mStr} ${ampm}`;
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+
+            // 24 hourly groups
+            for (let hGroup = 0; hGroup < 24; hGroup++) {
+                const hourVal = (currentStartHour + hGroup) % 24;
+                const slotIndex1 = hGroup * 2;
+                const slotIndex2 = hGroup * 2 + 1;
+
+                const slot1 = currentSchedule.slots[slotIndex1] || { actionId: '', label: '', color: '', status: 'none' };
+                const slot2 = currentSchedule.slots[slotIndex2] || { actionId: '', label: '', color: '', status: 'none' };
+
+                const groupEl = document.createElement('div');
+                groupEl.className = 'flex flex-col flex-none w-36 sm:w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 shadow-xs snap-start';
+
+                // Hour header
+                const headerEl = document.createElement('div');
+                headerEl.className = 'text-center font-bold text-xs text-slate-500 pb-2 border-b border-slate-100 dark:border-slate-800';
+                headerEl.textContent = formatHourLabel(hourVal);
+                groupEl.appendChild(headerEl);
+
+                // Slots wrapper
+                const slotsWrapper = document.createElement('div');
+                slotsWrapper.className = 'flex flex-col space-y-1.5 pt-2 flex-1';
+
+                slotsWrapper.appendChild(createSlotElement(slotIndex1, slot1));
+                slotsWrapper.appendChild(createSlotElement(slotIndex2, slot2));
+
+                groupEl.appendChild(slotsWrapper);
+                container.appendChild(groupEl);
+            }
+        }
+
+        function createSlotElement(index, slot) {
+            const slotDiv = document.createElement('div');
+            slotDiv.className = 'flex-1 rounded-xl p-2 flex flex-col justify-between cursor-pointer transition-all border border-slate-200 dark:border-slate-800 hover:border-emerald-500 relative overflow-hidden min-h-[70px]';
+            
+            // Background & text color
+            let bgClass = 'bg-slate-50 dark:bg-slate-800/50';
+            let customStyle = '';
+            let textColor = 'text-slate-700 dark:text-slate-300';
+
+            if (slot.color) {
+                customStyle = `background-color: ${slot.color};`;
+                textColor = 'text-white';
+            }
+
+            slotDiv.setAttribute('style', customStyle);
+            if (!slot.color) slotDiv.className += ` ${bgClass}`;
+
+            const timeStr = formatSlotTime(currentStartHour, index);
+
+            // Status indicator symbol
+            let statusBadge = '';
+            if (slot.status === 'done') statusBadge = '<span class="text-[10px] bg-black/20 px-1.5 py-0.5 rounded-full">Done ✓</span>';
+            else if (slot.status === 'skipped') statusBadge = '<span class="text-[10px] bg-black/20 px-1.5 py-0.5 rounded-full">Skipped</span>';
+            else if (slot.status === 'moved') statusBadge = '<span class="text-[10px] bg-black/20 px-1.5 py-0.5 rounded-full">Moved</span>';
+
+            const labelText = slot.label || '<span class="opacity-40 italic text-xs">Empty</span>';
+
+            slotDiv.innerHTML = `
+                <div class="flex items-center justify-between text-[10px] font-semibold opacity-80 ${textColor}">
+                    <span>${timeStr}</span>
+                    ${statusBadge}
+                </div>
+                <div class="font-medium text-xs truncate py-1 ${textColor}">
+                    ${labelText}
+                </div>
+            `;
+
+            slotDiv.onclick = () => openSlotModal(index);
+            return slotDiv;
+        }
+
+        function updateStats() {
+            let planned = 0, done = 0, skipped = 0;
+            currentSchedule.slots.forEach(s => {
+                if (s.label && s.label.trim() !== '') {
+                    planned++;
+                    if (s.status === 'done') done++;
+                    if (s.status === 'skipped') skipped++;
+                }
+            });
+            document.getElementById('stat-planned').textContent = planned;
+            document.getElementById('stat-done').textContent = done;
+            document.getElementById('stat-skipped').textContent = skipped;
+        }
+
+        // --- SLOT EDITOR MODAL ---
+        function openSlotModal(index) {
+            activeSlotIndex = index;
+            const slot = currentSchedule.slots[index];
+
+            // Populate action dropdown
+            const select = document.getElementById('slot-action-select');
+            select.innerHTML = '<option value="">-- None / Custom --</option>';
+            actions.forEach(a => {
+                const opt = document.createElement('option');
+                opt.value = a.id;
+                opt.textContent = a.name;
+                if (slot.actionId === a.id) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            document.getElementById('slot-label-input').value = slot.label || '';
+            document.getElementById('slot-color-input').value = slot.color || '#22c55e';
+            document.getElementById('slot-status-select').value = slot.status || 'none';
+            document.getElementById('slot-modal-title').textContent = `Edit Slot (${formatSlotTime(currentStartHour, index)})`;
+
+            openModal('slot-modal');
+        }
+
+        function onSlotActionSelected(actionId) {
+            if (!actionId) return;
+            const action = actions.find(a => a.id === actionId);
+            if (action) {
+                document.getElementById('slot-label-input').value = action.label;
+                document.getElementById('slot-color-input').value = action.color;
+            }
+        }
+
+        function resetSlotColor() {
+            const actionId = document.getElementById('slot-action-select').value;
+            if (actionId) {
+                const action = actions.find(a => a.id === actionId);
+                if (action) document.getElementById('slot-color-input').value = action.color;
+            } else {
+                document.getElementById('slot-color-input').value = '#22c55e';
+            }
+        }
+
+        async function saveCurrentSlot() {
+            if (activeSlotIndex === null) return;
+            const actionId = document.getElementById('slot-action-select').value;
+            const label = document.getElementById('slot-label-input').value;
+            const color = document.getElementById('slot-color-input').value;
+            const status = document.getElementById('slot-status-select').value;
+
+            currentSchedule.slots[activeSlotIndex] = { actionId, label, color, status };
+            await dbPut('schedules', currentSchedule);
+            closeModal('slot-modal');
+            renderUI();
+        }
+
+        async function clearCurrentSlot() {
+            if (activeSlotIndex === null) return;
+            currentSchedule.slots[activeSlotIndex] = { actionId: '', label: '', color: '', status: 'none' };
+            await dbPut('schedules', currentSchedule);
+            closeModal('slot-modal');
+            renderUI();
+        }
+
+        // --- START HOUR & SHIFT MODES ---
+        function openStartHourModal() {
+            populateStartHourSelect();
+            openModal('start-hour-modal');
+        }
+
+        function promptStartHourChangeConfirm() {
+            pendingStartHour = parseInt(document.getElementById('start-hour-select').value, 10);
+            closeModal('start-hour-modal');
+            if (pendingStartHour === currentStartHour) return;
+            openModal('start-hour-confirm-modal');
+        }
+
+        async function applyStartHourChange(mode) {
+            closeModal('start-hour-confirm-modal');
+            if (pendingStartHour === null) return;
+
+            const oldStart = currentStartHour;
+            const newStart = pendingStartHour;
+            currentStartHour = newStart;
+            currentSchedule.startHour = newStart;
+
+            if (mode === 'shift') {
+                // Shift schedule slots by time difference
+                const hourDiff = (newStart - oldStart + 24) % 24;
+                const slotShift = hourDiff * 2;
+                const newSlots = new Array(48).fill(null).map(() => ({ actionId: '', label: '', color: '', status: 'none' }));
+
+                for (let i = 0; i < 48; i++) {
+                    const targetIdx = (i - slotShift + 48) % 48;
+                    newSlots[targetIdx] = currentSchedule.slots[i];
+                }
+                currentSchedule.slots = newSlots;
+            } else if (mode === 'preserve') {
+                // Preserve actual real clock times
+                const oldSlots = [...currentSchedule.slots];
+                const newSlots = new Array(48).fill(null).map(() => ({ actionId: '', label: '', color: '', status: 'none' }));
+
+                for (let oldIdx = 0; oldIdx < 48; oldIdx++) {
+                    const oldMinutes = (oldStart * 60 + oldIdx * 30) % 1440;
+                    // Find new slot index that corresponds to this real minute
+                    for (let newIdx = 0; newIdx < 48; newIdx++) {
+                        const newMinutes = (newStart * 60 + newIdx * 30) % 1440;
+                        if (newMinutes === oldMinutes) {
+                            newSlots[newIdx] = oldSlots[oldIdx];
+                            break;
+                        }
+                    }
+                }
+                currentSchedule.slots = newSlots;
+            }
+
+            await dbPut('schedules', currentSchedule);
+            await dbPut('settings', { key: 'startHour', value: currentStartHour });
+            pendingStartHour = null;
+            renderUI();
+        }
+
+        // --- ACTIONS MANAGEMENT ---
+        function renderActionsList() {
+            const listEl = document.getElementById('actions-list');
+            listEl.innerHTML = '';
+            if (actions.length === 0) {
+                listEl.innerHTML = '<p class="text-sm text-slate-500 text-center py-6">No actions created yet.</p>';
+                return;
+            }
+
+            actions.forEach(a => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs';
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 rounded-lg" style="background-color: ${a.color}"></div>
+                        <div>
+                            <div class="font-semibold text-sm">${a.name}</div>
+                            <div class="text-xs text-slate-500">Default label: "${a.label}"</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="editAction('${a.id}')" class="px-3 py-1.5 text-xs bg-slate-100 dark:bg-slate-800 rounded-lg font-medium hover:bg-slate-200">Edit</button>
+                        <button onclick="deleteAction('${a.id}')" class="px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg font-medium">Delete</button>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        function openActionModal(id = null) {
+            document.getElementById('edit-action-id').value = id || '';
+            if (id) {
+                const act = actions.find(a => a.id === id);
+                document.getElementById('action-modal-title').textContent = 'Edit Action';
+                document.getElementById('action-name-input').value = act.name;
+                document.getElementById('action-label-input').value = act.label;
+                document.getElementById('action-color-input').value = act.color;
+            } else {
+                document.getElementById('action-modal-title').textContent = 'Create Action';
+                document.getElementById('action-name-input').value = '';
+                document.getElementById('action-label-input').value = '';
+                document.getElementById('action-color-input').value = '#3b82f6';
+            }
+            openModal('action-modal');
+        }
+
+        function editAction(id) {
+            openActionModal(id);
+        }
+
+        async function saveAction() {
+            const id = document.getElementById('edit-action-id').value;
+            const name = document.getElementById('action-name-input').value.trim();
+            const label = document.getElementById('action-label-input').value.trim();
+            const color = document.getElementById('action-color-input').value;
+
+            if (!name) {
+                showAlert('Validation Error', 'Action name cannot be empty.');
+                return;
+            }
+
+            const actionObj = {
+                id: id || 'act-' + Date.now(),
+                name,
+                label: label || name,
+                color
+            };
+
+            await dbPut('actions', actionObj);
+            await loadActions();
+            closeModal('action-modal');
+            renderActionsList();
+        }
+
+        async function deleteAction(id) {
+            await dbDelete('actions', id);
+            await loadActions();
+            renderActionsList();
+        }
+
+        // --- TEMPLATES MANAGEMENT ---
+        function renderTemplatesList() {
+            const listEl = document.getElementById('templates-list');
+            listEl.innerHTML = '';
+            if (templates.length === 0) {
+                listEl.innerHTML = '<p class="text-sm text-slate-500 text-center py-6">No templates created yet.</p>';
+                return;
+            }
+
+            templates.forEach(t => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs';
+                item.innerHTML = `
+                    <div>
+                        <div class="font-semibold text-sm">${t.name}</div>
+                        <div class="text-xs text-slate-500">Start Hour: ${formatHourLabel(t.startHour !== undefined ? t.startHour : 6)}</div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="applyTemplateDirect('${t.id}')" class="px-3 py-1.5 text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 rounded-lg font-medium hover:bg-emerald-100">Apply to Date</button>
+                        <button onclick="deleteTemplate('${t.id}')" class="px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg font-medium">Delete</button>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        function populateTemplateDropdown() {
+            const select = document.getElementById('apply-template-select');
+            select.innerHTML = '<option value="">Apply Template...</option>';
+            templates.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = t.name;
+                select.appendChild(opt);
+            });
+        }
+
+        function openTemplateModal() {
+            document.getElementById('edit-template-id').value = '';
+            document.getElementById('template-modal-title').textContent = 'Create Template from Current Schedule';
+            document.getElementById('template-name-input').value = '';
+            openModal('template-modal');
+        }
+
+        async function saveTemplate() {
+            const name = document.getElementById('template-name-input').value.trim();
+            if (!name) {
+                showAlert('Validation Error', 'Template name cannot be empty.');
+                return;
+            }
+
+            const tplObj = {
+                id: 'tpl-' + Date.now(),
+                name,
+                startHour: currentStartHour,
+                slots: JSON.parse(JSON.stringify(currentSchedule.slots))
+            };
+
+            await dbPut('templates', tplObj);
+            await loadTemplates();
+            closeModal('template-modal');
+            renderTemplatesList();
+            populateTemplateDropdown();
+        }
+
+        async function promptApplyTemplate(templateId) {
+            if (!templateId) return;
+            const tpl = templates.find(t => t.id === templateId);
+            if (!tpl) return;
+
+            currentSchedule.startHour = tpl.startHour !== undefined ? tpl.startHour : 6;
+            currentStartHour = currentSchedule.startHour;
+            currentSchedule.templateId = tpl.id;
+            currentSchedule.slots = JSON.parse(JSON.stringify(tpl.slots));
+
+            await dbPut('schedules', currentSchedule);
+            await dbPut('settings', { key: 'startHour', value: currentStartHour });
+            document.getElementById('apply-template-select').value = '';
+            renderUI();
+            showAlert('Template Applied', `Successfully applied template "${tpl.name}" to ${currentDateKey}.`);
+        }
+
+        async function applyTemplateDirect(templateId) {
+            await promptApplyTemplate(templateId);
+            switchTab('day');
+        }
+
+        async function deleteTemplate(id) {
+            await dbDelete('templates', id);
+            await loadTemplates();
+            renderTemplatesList();
+            populateTemplateDropdown();
+        }
+
+        // --- BACKUP & RESTORE ---
+        async function exportBackup() {
+            const schedules = await dbGetAll('schedules');
+            const acts = await dbGetAll('actions');
+            const tpls = await dbGetAll('templates');
+            
+            const backupData = {
+                version: 1,
+                exportDate: new Date().toISOString(),
+                schedules,
+                actions: acts,
+                templates: tpls,
+                startHour: currentStartHour
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `halfhour-backup-${currentDateKey}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        async function importBackup(inputElement) {
+            const file = inputElement.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.schedules || !data.actions || !data.templates) {
+                        throw new Error('Invalid backup file structure.');
+                    }
+
+                    for (let s of data.schedules) await dbPut('schedules', s);
+                    for (let a of data.actions) await dbPut('actions', a);
+                    for (let t of data.templates) await dbPut('templates', t);
+                    if (data.startHour !== undefined) {
+                        currentStartHour = data.startHour;
+                        await dbPut('settings', { key: 'startHour', value: currentStartHour });
+                    }
+
+                    await loadActions();
+                    await loadTemplates();
+                    await loadScheduleForDate(currentDateKey);
+                    renderUI();
+                    showAlert('Success', 'Backup successfully imported and restored.');
+                } catch (err) {
+                    showAlert('Import Error', 'Failed to parse backup file. Ensure it is a valid HalfHour JSON export.');
+                }
+                inputElement.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        async function promptResetData() {
+            if (confirm('Are you sure you want to reset all data? This cannot be undone unless you have a backup.')) {
+                // Clear stores
+                const stores = ['schedules', 'actions', 'templates', 'settings'];
+                for (let storeName of stores) {
+                    const tx = db.transaction(storeName, 'readwrite');
+                    const store = tx.objectStore(storeName);
+                    store.clear();
+                }
+                window.location.reload();
+            }
+        }
+
+        // --- THEME ---
+        async function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            await dbPut('settings', { key: 'darkMode', value: isDark });
+        }
+
+        // --- MODAL UTILITIES ---
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function showAlert(title, message) {
+            document.getElementById('custom-alert-title').textContent = title;
+            document.getElementById('custom-alert-message').textContent = message;
+            openModal('custom-alert-modal');
+        }
+    </script>
+</body>
+</html>
